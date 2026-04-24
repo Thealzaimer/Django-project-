@@ -1,8 +1,10 @@
 from typing import Dict, Any
 from .models import AutoFlowWorkflow
 from django.contrib.auth.models import User
+from django.db import transaction
 import json
 
+@transaction.atomic
 def tool_draft_workflow_plan(user_id: int, name: str, plan_details: dict) -> Dict[str, Any]:
     try:
         user = User.objects.get(id=user_id)
@@ -16,6 +18,7 @@ def tool_draft_workflow_plan(user_id: int, name: str, plan_details: dict) -> Dic
     except User.DoesNotExist:
         return {"status": "error", "message": "User not found"}
 
+@transaction.atomic
 def tool_update_workflow_plan(user_id: int, workflow_id: int, plan_details: dict) -> Dict[str, Any]:
     try:
         workflow = AutoFlowWorkflow.objects.get(id=workflow_id, user_id=user_id)

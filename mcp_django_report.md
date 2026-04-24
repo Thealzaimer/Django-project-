@@ -15,12 +15,14 @@ A functional Django application was bootstrapped featuring:
 - An **`MCPToolAuditLog`** model maintaining an immutable ledger of every LLM tool execution.
 - Restrictive **Pydantic Tool Contracts** (e.g., `DraftWorkflowPlanSchema`).
 - An HTTP-based **MCP Event View** secured by a custom **`MCPSecurityMiddleware`** interceptor.
+- A **FastMCP Native Stdio Server** (`mcp_server.py`) with mirrored IDOR security and observability for direct Claude Desktop integration.
 
 ## d) Example Plan & Testing 
-A rigorous abuse-testing suite was developed utilizing Django's `TestCase` framework to simulate prompt injections and malicious LLM executions:
+A rigorous abuse-testing suite was developed utilizing Django's `TestCase` framework (and `showcase.py`) to simulate prompt injections and malicious LLM executions:
 1. **IDOR Prevention:** Testing validated that when an LLM requests to alter data for `User B` while operating under `User A`'s context, the middleware blocks the execution and reports an Unauthorized event in the `MCPToolAuditLog`.
 2. **Strict Access Control:** An LLM attempting to call an unregistered or destructive tool (`tool_delete_all_users`) is caught by the middleware registry block.
 3. **Prompt/Payload Injection:** Bypassing schema fields with excessive string inputs and SQL statements triggered Pydantic validation failures, ensuring no malformed data reaches the ORM logic.
+4. **JSON Depth DoS Mitigation:** Testing blocked arbitrarily deep recursive JSON objects (e.g., `plan_details` payload greater than 5 branches deep) preventing server-crashing Memory/Compute Exhaustion loops.
 
 ## e) Complexity and Cost Analysis
 * **Tool Orchestration Latency:** Exposing tools over HTTP to an LLM introduces serialization/deserialization latency, specifically through JSON parsing and Pydantic validation (usually adding 5–15ms per request). High-volume autonomous AI agents executing massive tool chains could compound this delay, necessitating asynchronous (`async/await`) handling or bulk tool execution.

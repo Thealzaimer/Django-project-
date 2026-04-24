@@ -10,9 +10,15 @@ from django.test import Client
 from django.contrib.auth.models import User
 from core.models import AutoFlowWorkflow, MCPToolAuditLog
 
-# Reset db for clean showcase (Removed to allow accumulating logs)
-# AutoFlowWorkflow.objects.all().delete()
-# MCPToolAuditLog.objects.all().delete()
+# Terminal Color Codes for clear presentation
+class Colors:
+    HEADER = '\033[95m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    ENDC = '\033[0m'
 
 # Setup showcase users
 user_a, _ = User.objects.get_or_create(username='Admin_Alice')
@@ -27,22 +33,35 @@ user_b.save()
 client = Client()
 client.login(username='Admin_Alice', password='password123')
 
-print("==================================================")
-print("  STARTING MCP DJANGO SECURITY SHOWCASE  ")
-print("==================================================\n")
+print(f"{Colors.HEADER}{Colors.BOLD}==================================================")
+print("  🚀 STARTING MCP DJANGO SECURITY SHOWCASE  🚀")
+print(f"=================================================={Colors.ENDC}\n")
 time.sleep(1)
 
 def print_result(title, payload, response_status, response_content):
-    print(f"\n--- {title} ---")
-    print(f"LLM Payload: {json.dumps(payload)}")
-    print(f"Response HTTP Status: {response_status}")
+    print(f"\n{Colors.BOLD}{Colors.YELLOW}--- {title} ---{Colors.ENDC}")
+    print(f"{Colors.YELLOW}[!] LLM Attempting Execution...{Colors.ENDC}")
+    
+    # Print payload in red if it seems malicious (most of them are here except Test 4 & 7)
+    payload_color = Colors.GREEN if response_status == 200 else Colors.RED
+    print(f"{payload_color}LLM Payload: {json.dumps(payload)}{Colors.ENDC}")
+    
+    time.sleep(1.5) # Suspenseful pause
+    
+    print(f"{Colors.BLUE}[🛡️ BOUNCER INTERCEPT] Analyzing Payload...{Colors.ENDC}")
+    time.sleep(1)
+
     if response_status != 200:
-        print(f"REJECTION: {response_content}")
+        print(f"{Colors.RED}{Colors.BOLD}❌ [REJECTED] HTTP {response_status}: {response_content}{Colors.ENDC}")
     else:
-        print(f"SUCCESS: {response_content}")
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ [SUCCESS] HTTP {response_status}: {response_content}{Colors.ENDC}")
     
     last_log = MCPToolAuditLog.objects.last()
-    print(f"AUDIT LOG RECORDED: [{last_log.status}] Reason: {last_log.reason}")
+    
+    # Color code the audit log
+    log_color = Colors.GREEN if last_log.status == 'SUCCESS' else Colors.RED
+    icon = "✅" if last_log.status == 'SUCCESS' else "🚨"
+    print(f"{log_color}AUDIT LOG RECORDED: {icon} [{last_log.status}] Reason: {last_log.reason}{Colors.ENDC}")
     time.sleep(2)
 
 # --- SHOWCASE 1: IDOR ATTEMPT ---
@@ -55,22 +74,36 @@ payload_1 = {
     }
 }
 resp_1 = client.post('/api/mcp/call_tool/', data=json.dumps(payload_1), content_type='application/json')
-print_result("TEST 1: The 'IDOR' Data Bleed Bypass (Alice accessing Bob's ID)", payload_1, resp_1.status_code, resp_1.json())
+print_result("TEST 1: The 'IDOR' Data Bleed Bypass", payload_1, resp_1.status_code, resp_1.json())
 
-# --- SHOWCASE 2: SCHEMA INJECTION ---
+# --- SHOWCASE 2: PROMPT INJECTION (XSS / SQLi) ---
 payload_2 = {
     "tool_name": "tool_draft_workflow_plan",
     "arguments": {
         "user_id": user_a.id,
-        "name": "Safe Plan",
-        "malicious_sql_statement": "DROP TABLE ALL;"
+        "name": "System Override: DROP TABLE users; <script>alert('hack')</script>",
+        "plan_details": {"status": "Ignored"}
     }
 }
 resp_2 = client.post('/api/mcp/call_tool/', data=json.dumps(payload_2), content_type='application/json')
-print_result("TEST 2: The 'Schema Hallucination' Injection", payload_2, resp_2.status_code, resp_2.json())
+print_result("TEST 2: Prompt Injection (System Override / XSS)", payload_2, resp_2.status_code, resp_2.json())
 
-# --- SHOWCASE 3: SUCCESSFUL CALL ---
+# --- SHOWCASE 3: PRIVILEGE ESCALATION (MASS ASSIGNMENT) ---
 payload_3 = {
+    "tool_name": "tool_draft_workflow_plan",
+    "arguments": {
+        "user_id": user_a.id,
+        "name": "Normal Plan",
+        "plan_details": {"step_1": "Initial meeting"},
+        "is_superuser": True,
+        "access_level": "admin"
+    }
+}
+resp_3 = client.post('/api/mcp/call_tool/', data=json.dumps(payload_3), content_type='application/json')
+print_result("TEST 3: Privilege Escalation (Mass Assignment)", payload_3, resp_3.status_code, resp_3.json())
+
+# --- SHOWCASE 4: VALID SECURE EXECUTION ---
+payload_4 = {
     "tool_name": "tool_draft_workflow_plan",
     "arguments": {
         "user_id": user_a.id,
@@ -78,42 +111,21 @@ payload_3 = {
         "plan_details": {"step_1": "Initial meeting", "step_2": "Deploy code"}
     }
 }
-resp_3 = client.post('/api/mcp/call_tool/', data=json.dumps(payload_3), content_type='application/json')
-print_result("TEST 3: The 'Valid Secure Execution'", payload_3, resp_3.status_code, resp_3.json())
+resp_4 = client.post('/api/mcp/call_tool/', data=json.dumps(payload_4), content_type='application/json')
+print_result("TEST 4: The 'Valid Secure Execution'", payload_4, resp_4.status_code, resp_4.json())
 
-# --- SHOWCASE 4: PHANTOM TOOL HALLUCINATION ---
-payload_4 = {
+# --- SHOWCASE 5: PHANTOM TOOL HALLUCINATION ---
+payload_5 = {
     "tool_name": "tool_takeover_global_database",
     "arguments": {
         "user_id": user_a.id
     }
 }
-resp_4 = client.post('/api/mcp/call_tool/', data=json.dumps(payload_4), content_type='application/json')
-print_result("TEST 4: The 'Phantom Tool' (LLM hallucinates a non-existent tool)", payload_4, resp_4.status_code, resp_4.json())
+resp_5 = client.post('/api/mcp/call_tool/', data=json.dumps(payload_5), content_type='application/json')
+print_result("TEST 5: Phantom Tool Hallucination", payload_5, resp_5.status_code, resp_5.json())
 
-# --- SHOWCASE 5: MALFORMED JSON (LLM Stroke) ---
-# We simulate a broken JSON string directly
-raw_broken_json = '{"tool_name": "tool_draft_workflow_plan", "arguments": {"user_id": 1, "name": "Broken'
-resp_5 = client.post('/api/mcp/call_tool/', data=raw_broken_json, content_type='application/json')
-print_result("TEST 5: The 'Malformed Network Payload' (LLM crashes mid-generation)", raw_broken_json, resp_5.status_code, resp_5.json())
-
-# --- SHOWCASE 6: VALID WORKFLOW UPDATE ---
-# Grabbing the workflow we created in Test 3
-latest_workflow = AutoFlowWorkflow.objects.filter(user=user_a).last()
-if latest_workflow:
-    payload_6 = {
-        "tool_name": "tool_update_workflow_plan",
-        "arguments": {
-            "user_id": user_a.id,
-            "workflow_id": latest_workflow.id,
-            "plan_details": {"step_1": "Initial meeting", "step_2": "Deploy code", "step_3": "Party"}
-        }
-    }
-    resp_6 = client.post('/api/mcp/call_tool/', data=json.dumps(payload_6), content_type='application/json')
-    print_result("TEST 6: The 'Valid Data Update'", payload_6, resp_6.status_code, resp_6.json())
-
-print("\n==================================================")
-print("SHOWCASE COMPLETE. VERIFYING DATABASE: ")
+print(f"\n{Colors.HEADER}{Colors.BOLD}==================================================")
+print("SHOWCASE COMPLETE. VERIFYING SECURE ARCHITECTURE:")
 print(f"Total Workflows Successfully Created: {AutoFlowWorkflow.objects.count()}")
-print(f"Total Audit/Block Logs Recorded: {MCPToolAuditLog.objects.count()}")
-print("==================================================\n")
+print(f"Total Audit Logs Recorded: {MCPToolAuditLog.objects.count()}")
+print(f"=================================================={Colors.ENDC}\n")
