@@ -19,3 +19,4 @@ Tool orchestration latency, auditing overhead, and reliability risk.
 
 f) Improvements, optimizations, and limits. 
 Minimize tool side effects and require strict validation. 
+g)
