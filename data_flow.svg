@@ -1,0 +1,58 @@
+<svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1000" height="600" fill="#f8f9fa" rx="10"/>
+  
+  <!-- Title -->
+  <text x="500" y="40" font-family="Segoe UI, Arial" font-size="24" font-weight="bold" text-anchor="middle" fill="#2c3e50">AutoFlow: End-to-End MCP Data Flow</text>
+
+  <!-- Actors -->
+  <line x1="150" y1="100" x2="150" y2="550" stroke="#333" stroke-width="2" stroke-dasharray="5,5"/>
+  <rect x="100" y="60" width="100" height="40" rx="5" fill="#3498db"/>
+  <text x="150" y="85" font-family="Segoe UI, Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="white">USER</text>
+
+  <line x1="400" y1="100" x2="400" y2="550" stroke="#333" stroke-width="2" stroke-dasharray="5,5"/>
+  <rect x="350" y="60" width="100" height="40" rx="5" fill="#9b59b6"/>
+  <text x="400" y="85" font-family="Segoe UI, Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="white">LLM</text>
+
+  <line x1="750" y1="100" x2="750" y2="550" stroke="#333" stroke-width="2" stroke-dasharray="5,5"/>
+  <rect x="680" y="60" width="140" height="40" rx="5" fill="#2ecc71"/>
+  <text x="750" y="85" font-family="Segoe UI, Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="white">DJANGO (MCP)</text>
+
+  <!-- Flow 1: Initialization -->
+  <path d="M 150 130 L 390 130" stroke="#2c3e50" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="275" y="125" font-family="Segoe UI, Arial" font-size="12" text-anchor="middle">1. Start Session</text>
+
+  <!-- Flow 2: Discovery Handshake -->
+  <path d="M 400 160 L 740 160" stroke="#e67e22" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="575" y="155" font-family="Segoe UI, Arial" font-size="12" text-anchor="middle" fill="#d35400">2. list_tools (Discovery)</text>
+
+  <path d="M 750 190 L 410 190" stroke="#e67e22" stroke-width="2" fill="none" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+  <text x="575" y="185" font-family="Segoe UI, Arial" font-size="12" text-anchor="middle" fill="#d35400">3. JSON Manifest (Schemas)</text>
+
+  <!-- Flow 3: User Prompt -->
+  <path d="M 150 240 L 390 240" stroke="#2c3e50" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="275" y="235" font-family="Segoe UI, Arial" font-size="12" text-anchor="middle">4. "Create Summer Plan"</text>
+
+  <!-- Flow 4: Tool Call -->
+  <path d="M 400 280 L 740 280" stroke="#2ecc71" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="575" y="275" font-family="Segoe UI, Arial" font-size="12" text-anchor="middle" fill="#27ae60">5. call_tool (Payload)</text>
+
+  <!-- Flow 5: Security Funnel (Internal Django) -->
+  <rect x="680" y="300" width="140" height="150" rx="5" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+  <text x="750" y="320" font-family="Segoe UI, Arial" font-size="10" font-weight="bold" text-anchor="middle">SECURITY FUNNEL</text>
+  <text x="750" y="345" font-family="Segoe UI, Arial" font-size="9" text-anchor="middle">a. Bouncer (IDOR)</text>
+  <text x="750" y="370" font-family="Segoe UI, Arial" font-size="9" text-anchor="middle">b. Contract (Pydantic)</text>
+  <text x="750" y="395" font-family="Segoe UI, Arial" font-size="9" text-anchor="middle">c. Engine (Atomic)</text>
+  <text x="750" y="420" font-family="Segoe UI, Arial" font-size="9" text-anchor="middle">d. Ledger (AuditLog)</text>
+
+  <!-- Flow 6: Response -->
+  <path d="M 750 480 L 160 480" stroke="#2ecc71" stroke-width="2" fill="none" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+  <text x="450" y="475" font-family="Segoe UI, Arial" font-size="12" text-anchor="middle" fill="#27ae60">6. Success Result (200 OK)</text>
+
+  <!-- Markers -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2c3e50" />
+    </marker>
+  </defs>
+</svg>

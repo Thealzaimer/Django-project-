@@ -38,6 +38,20 @@ print("  🚀 STARTING MCP DJANGO SECURITY SHOWCASE  🚀")
 print(f"=================================================={Colors.ENDC}\n")
 time.sleep(1)
 
+# --- NEW SHOWCASE 0: DISCOVERY HANDSHAKE ---
+print(f"{Colors.BOLD}{Colors.YELLOW}--- TEST 0: The 'Discovery' Handshake ---{Colors.ENDC}")
+print(f"{Colors.YELLOW}[!] Requesting Tool Manifest from /api/mcp/list_tools/...{Colors.ENDC}")
+resp_0 = client.get('/api/mcp/list_tools/')
+if resp_0.status_code == 200:
+    print(f"{Colors.GREEN}✅ [DISCOVERED] Server returned {len(resp_0.json()['tools'])} tools with full schemas.{Colors.ENDC}")
+    # Print the first tool's discovery info as an example
+    tool = resp_0.json()['tools'][0]
+    print(f"{Colors.BLUE}   -> Discovered Tool: {tool['name']}{Colors.ENDC}")
+    print(f"      Description: {tool['description']}")
+else:
+    print(f"{Colors.RED}❌ Discovery Failed: {resp_0.content}{Colors.ENDC}")
+time.sleep(2)
+
 def print_result(title, payload, response_status, response_content):
     print(f"\n{Colors.BOLD}{Colors.YELLOW}--- {title} ---{Colors.ENDC}")
     print(f"{Colors.YELLOW}[!] LLM Attempting Execution...{Colors.ENDC}")

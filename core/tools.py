@@ -6,6 +6,10 @@ import json
 
 @transaction.atomic
 def tool_draft_workflow_plan(user_id: int, name: str, plan_details: dict) -> Dict[str, Any]:
+    """
+    Creates a new draft workflow plan. 
+    Use this tool when the user wants to start, draft, or initialize a new project or automation sequence.
+    """
     try:
         user = User.objects.get(id=user_id)
         workflow = AutoFlowWorkflow.objects.create(
@@ -20,6 +24,10 @@ def tool_draft_workflow_plan(user_id: int, name: str, plan_details: dict) -> Dic
 
 @transaction.atomic
 def tool_update_workflow_plan(user_id: int, workflow_id: int, plan_details: dict) -> Dict[str, Any]:
+    """
+    Updates the details of an existing workflow plan.
+    Use this tool when the user wants to modify, change, or refine a plan they have already created.
+    """
     try:
         workflow = AutoFlowWorkflow.objects.get(id=workflow_id, user_id=user_id)
         workflow.plan_details = plan_details

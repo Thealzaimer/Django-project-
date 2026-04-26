@@ -1,6 +1,6 @@
 
 
-Topic 19. MCP for Django applications: tool interfaces for LLM-driven workflows
+Topic : MCP for Django applications: tool interfaces for LLM-driven workflows
 
 a) Description. 
 Use Model Context Protocol (MCP) to expose Django capabilities as safe tools with strict input validation, permission scoping, and observability for every tool invocation. 
@@ -19,4 +19,12 @@ Tool orchestration latency, auditing overhead, and reliability risk.
 
 f) Improvements, optimizations, and limits. 
 Minimize tool side effects and require strict validation. 
-g)
+g)## 1. What you must produce
+1. **Slides** for the **theoretical** part: definitions, trade-offs, limits, and explicit treatment of **complexity/cost** and **improvements/optimizations/limits** (as in the topic template in the handout).
+2. **Source code** (if applicable) and clear instructions to reproduce the practical work.
+3. **Screenshots** or a short **demo video** showing tests or runs.
+
+Your slides and practical work should reflect the same structure used in the handout:
+description, theory, practice, example plan, complexity/cost analysis, improvements/optimizations/limits, and useful links.
+
+

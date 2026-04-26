@@ -16,9 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from core.views import call_tool_view
+from core.views import call_tool_view, list_tools_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/mcp/list_tools/', list_tools_view, name='mcp_list_tools'),
     path('api/mcp/call_tool/', call_tool_view, name='mcp_call_tool'),
 ]
